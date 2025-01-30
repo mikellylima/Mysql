@@ -532,6 +532,400 @@ SELECT @varData,
 ```
 
 
+--------------
+## Módulo 39: Funções de Texto e Data no MySQL
+
+### Aula 1: Função LENGTH
+- Exemplo 1. Descubra a quantidade de caracteres do texto 'SQL Impressionador'.
+
+```sql
+SET @varCurso = 'SQL Impressionador';
+
+SELECT LENGHT(@varCurso);
+```
+
+- Exemplo 2. Descubra a quantidade de caracteres de cada nome na tabela clientes.ALTER
+
+```sql
+SELECT
+	Nome AS 'Nome',
+	LENGTH(Nome) AS 'Núm. Caract.'
+FROM clientes;
+```
+
+### Aula 2: Funções CONCAT e CONCAT_WS (Parte 1)
+- Exemplo 1. Crie 2 variáveis: @varNome e @varSobrenome, e declare um nome e um sobrenome, respectivamente. Utilize as funções CONCAT e CONCAT_WS para criar uma 3ª variável que retorne o nome completo.ALTER
+
+```sql
+SET @varNome = 'Marcus';
+SET @varSobrenome = 'Cavalcanti';
+SET @varUltimoNome = 'Jesus';
+
+SET @varNomeCompleto = CONCAT(@varNome, ' ', @varSobrenome, ' ', @varUltimoNome);
+SET @varNomeCompleto2 = CONCAT_WS(' ', @varNome, @varSobrenome, @varUltimoNome);
+
+SELECT @varNomeCompleto;
+SELECT @varNomeCompleto2;
+```
+
+
+### Aula 3: Funções CONCAT e CONCAT_WS (Parte 2)
+- Exemplo 2. Utilize as funções CONCAT e CONCAT_WS na tabela de clientes para criar uma coluna de nome completo.
+
+```sql
+SELECT
+	ID_Cliente,
+	Nome,
+	Sobrenome,
+	Email,
+	CONCAT(Nome, ' ', Sobrenome) AS 'Nome Completo',
+	CONCAT_WS(' ', Nome, Sobrenome) AS 'Nome Completo'
+FROM clientes;
+```
+
+### Aula 4: Funções LCASE e UCASE
+- Exemplo 1. Utilize as funções LCASE e UCASE com as variáveis abaixo.
+
+```sql
+SET @nome = 'fernando';
+SET @sobrenome = 'martins';
+
+SELECT
+	LCASE(@nome),
+	UCASE(@sobrenome)
+```
+
+- Exemplo 2. Utilize as funções LCASE e UCASE nas colunas de nome completo abaixo.
+
+```sql
+SELECT
+	LCASE(CONCAT(Nome, ' ', Sobrenome)) AS 'Nome Completo (Concat)',
+	UCASE(CONCAT_WS(' ', Nome, Sobrenome)) AS 'Nome Completo (Concat_ws)'
+FROM clientes;
+```
+
+
+### Aula 5: Funções RIGHT e LEFT
+- Exemplo 1. Separe o texto abaixo em 2 partes: 'SQL' e "Hashtag'.
+
+```sql
+SET @var = 'SQL Hashtag';
+
+SELECT
+	LEFT(@var, 3) AS 'Left',
+	RIGHT(@var, 7) AS 'Right'
+```
+
+- Exemplo 2. Separe os códigos da coluna Num_Serie (tabela 'produtos') em 2 partes.
+
+```sql
+SELECT
+	LEFT(Num_Serie, 6) AS 'Cod 1',
+	RIGHT(Num_Serie, 6) AS 'Cod 2'
+FROM produtos;
+```
+
+
+### Aula 6: Funções REPLACE
+- Exemplo 1. No texto abaixo, substitua 'HIMYM' por 'Friends'.
+
+```sql
+SET @texto = 'HIMYM é a melhor série de comédia.';
+
+SET @textonovo = REPLACE(@texto, 'HIMYM', 'Friends');
+
+SELECT @textonovo;
+```
+
+- Exemplo 2. Substitua o texto 'S' por 'Solteiro'. Em seguida, substitua 'C' por 'Casado'.
+
+```sql
+SELECT
+	Nome,
+	Estado_Civil,
+	REPLACE(REPLACE(Estado_Civil, 'S', 'Solteiro'), 'C', 'Casado')
+FROM clientes;
+```
+
+
+### Aula 7: Funções INSTR e MID (Parte 1)
+- Exemplo 1: Utilize o e-mail abaixo para fazer as seguintes ações:
+- a) Retornar a posição do caractere '@';
+
+```sql
+SET @email = 'marcus@gmail.com';
+
+SET @varPosArroba = INSTR(@email, '@');
+
+SELECT @varPosArroba;
+```
+
+- b) Retornar o id do e-mail.
+
+```sql
+SET @email = 'marcus@gmail.com';
+
+-- Usando Left
+SET @varIdEmail = LEFT(@email, 6);
+
+-- Usando Mid
+SET @varIdEmailMid = MID(@email, 1, 6);
+
+SELECT @varIdEmailMid;
+
+-- Automatizando
+SET @varIdEmailMid = MID(@email, 1, INSTR(@email, '@') - 1);
+SELECT @varIdEmailMid;
+```
+
+
+### Aula 8: Funções INSTR e MID (Parte 2)
+- Exemplo 2. Utilize as funções INSTR e MID para retornar o ID de todos os e-mails da tabela de clientes.ALTER
+
+```sql
+SELECT
+	Email,
+	MID(Email, 1, INSTR(Email, '@') - 1) AS 'ID email'
+FROM clientes;
+```
+
+
+### Aula 9: Funções DAY, YEAR e MONTH
+
+```sql
+# 1. DAY(): Retorna o dia de uma data
+# 2. MONTH(): Retorna o mês de uma data
+# 3. YEAR(): Retorna o ano de uma data
+
+SELECT
+	Nome,
+	Data_Nascimento,
+	DAY(Data_Nascimento) AS 'Dia',
+	MONTH(Data_Nascimento) AS 'Mês',
+	YEAR(Data_Nascimento) AS 'Ano'
+FROM clientes;
+```
+
+
+### Aula 10: Funções NOW, CURDATE e CURTIME
+
+```sql
+# 1. NOW(): Retorna a data e hora atuais
+# 2. CURDATE(): Retorna a data atual
+# 3. CURTIME(): Retorna a hora atual
+
+SELECT
+	NOW(),
+	CURDATE(),
+	CURTIME()
+```
+
+
+### Aula 11: Funções DATE_DIFF, DATE_ADD e DATE_SUB
+- 1. DATEDIFF: Retorna a diferença entre duas datas. Calcular o tempo de entrega (em dias) de um projeto.
+
+```sql
+SET @varDataInicio = '2021-04-10';
+SET @varDataFim = '2021-07-15';
+ 
+SELECT DATEDIFF(@varDataFim, @varDataInicio);
+```
+
+- 2. DATE_ADD: Adiciona uma quantidade de dias/meses/anos a uma determinada data. Um projeto deve ser entregue 10 dias após a data de início. Qual é a data final de entrega?
+ 
+```sql
+SET @varDataInicio = '2021-04-10';
+ 
+SELECT DATE_ADD(@varDataInicio, INTERVAL 10 DAY);
+```
+
+- 3. DATE_SUB: Subtrai uma quantidade de dias/meses/anos a uma determinada data. Um projeto finalizou no dia '2021-09-21' e teve 10 dias de duração. Qual foi a data de início?
+
+```sql
+SET @varDataFim = '2021-09-21';
+
+SELECT DATE_SUB(@varDataFim, INTERVAL 10 DAY);
+```
+
+
+--------------
+## Módulo 40: Joins 
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
+### 
+- 
+
+```sql
+
+```
+
+
 ### 
 - 
 
