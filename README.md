@@ -313,53 +313,177 @@ WHERE Data_Nascimento BETWEEN '1995/01/01' AND '1999/12/31';
 --------------
 ## Módulo 36: Operações Básicas e Funções de Agregação
 
-### 
-- 
+### Aula 1: Operações básicas e funções de arredondamento
+- Operações básicas
 
 ```sql
+SELECT
+	10 + 20			AS 'Soma',
+	100 - 40		AS 'Subtração',
+	5 * 20			AS 'Multiplicação',
+	300 / 12		AS 'Divisão',
+	(100 - 10) * 4	AS 'Operação',
+	22 % 5			AS 'Resto da divisão';
+```
 
+- Funções de arredondamento
+
+```sql
+SELECT
+	ROUND(87.149, 2)		AS 'Arred.',
+	FLOOR(87.149)			AS 'Arred. p/ baixo',
+	CEILING(87.149)			AS 'Arred. p/ cima',
+	TRUNCATE(87.149, 2) 	AS 'Truncar';
+```
+
+### Aula 2: COUNT, COUNT DISTINCT
+- a) Conte a quantidade de clientes a partir da coluna de Nome
+
+```sql
+SELECT
+    COUNT(Nome) AS 'Contagem'
+FROM clientes;
+```
+
+- b) Conte a quantidade de clientes a partir da coluna de Telefone
+
+```sql
+SELECT
+    COUNT(Telefone) AS 'Contagem'
+FROM clientes;
+```
+
+- c) Houve alguma diferença nos resultados? Por quê? Teve diferença de resultados porque o COUNT ignora (ou seja, não considera) os valores nulos de uma coluna. Conte a quantidade total de linhas da tabela de CLIENTES.
+
+```sql
+SELECT
+    COUNT(*) AS 'Contagem'
+FROM clientes;
+```
+
+- Conte a quantidade de marcas distintas na tabela de PRODUTOS
+
+```sql
+SELECT
+    COUNT(DISTINCT Marca_Produto) AS 'Contagem'
+FROM produtos;
 ```
 
 
-### 
-- 
+### Aula 3 de 3: SUM, AVG, MIN e MAX
+- a) Soma de Receita_Total
+- b) Média de Receita_Total
+- c) Mínimo de Receita_Total
+- d) Máximo de Receita_Total
 
 ```sql
-
+SELECT
+	SUM(Receita_Venda) AS 'Soma de Receita',
+    AVG(Receita_Venda) AS 'Média de Receita',
+    MIN(Receita_Venda) AS 'Menor Receita',
+    MAX(Receita_Venda) AS 'Maior Receita'
+FROM pedidos;
 ```
 
 
-### 
-- 
+----------------
+## Módulo 37: Agrupamentos no MySQL
+
+### Aula 1 de 4: GROUP BY (Parte 1)
+- Exemplo 1. Crie um agrupamento mostrando o total de produtos por marca.
 
 ```sql
+SELECT
+	Marca_Produto,
+    COUNT(*) AS 'Qtd. de Produtos'
+FROM produtos
+GROUP BY Marca_Produto
+ORDER BY COUNT(*) DESC;
+```
 
+- Exemplo 2. Crie um agrupamento mostrando o total de clientes por sexo.
+
+```sql
+SELECT
+	Sexo,
+    COUNT(*) AS 'Qtd. de Clientes'
+FROM clientes
+GROUP BY Sexo
+ORDER BY COUNT(*) DESC;
+```
+
+- Exemplo 3. Crie um agrupamento mostrando o total de vendas por ID do Produto.
+
+```sql
+SELECT
+	ID_Produto,
+	SUM(Receita_Venda) AS 'Total Receita'
+FROM pedidos
+GROUP BY ID_Produto
+ORDER BY SUM(Receita_Venda) DESC;
 ```
 
 
-### 
-- 
+### Aula 2: GROUP BY (Parte 2)
+- Exemplo 4. Crie um agrupamento mostrando o total de clientes por escolaridade e sexo.
 
 ```sql
+SELECT
+	Escolaridade,
+	Sexo,
+	COUNT(*) AS 'Qtd. Clientes'
+FROM clientes
+GROUP BY Escolaridade, Sexo
+ORDER BY COUNT(*) DESC;
+```
 
+- Exemplo 5. Crie um agrupamento mostrando o total de receita por ID do Produto e ID da Loja.
+
+```sql
+SELECT
+	ID_Produto,
+	ID_Loja,
+	SUM(Receita_Venda) AS 'Qtd. VENDAS'
+FROM pedidos
+GROUP BY ID_Produto, ID_Loja;
+```
+
+### Aula 3: GROUP BY e WHERE
+- Exemplo 1. Crie um agrupamento mostrando o total de clientes por escolaridade, mas apenas os clientes do sexo feminino.
+
+```sql
+SELECT
+	Escolaridade,
+	Sexo,
+	COUNT(*) AS 'Qtd. Cliente'
+FROM clientes
+WHERE Sexo = 'F'
+GROUP BY Escolaridade;
 ```
 
 
-### 
-- 
+### Aula 4: GROUP BY e HAVING
+- Exemplo 1. Crie um agrupamento mostrando o total de clientes por escolaridade. Filtre o agrupamento resultante para mostrar apenas as escolaridades com mais de 25 clientes.
 
 ```sql
-
+SELECT
+	Escolaridade,
+	COUNT(*) AS 'Qtd. Cliente'
+FROM clientes
+GROUP BY Escolaridade
+HAVING COUNT(*) > 25;
 ```
 
-
-### 
-- 
+- Exemplo 2. Crie um agrupamento mostrando o total de receita por ID_Produto. Filtre o agrupamento resultante para mostrar apenas os produtos que tiveram uma receita total superior a R$5MM.
 
 ```sql
-
+SELECT
+	ID_Produto,
+	SUM(Receita_Venda) AS 'Receita Total'
+FROM pedidos
+GROUP BY ID_produto
+HAVING SUM(Receita_Venda) > 5000000;
 ```
-
 
 ### 
 - 
