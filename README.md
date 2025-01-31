@@ -891,144 +891,546 @@ SELECT
 	- NotaDesempenho < 7 ----> Não recebe bônus
 
 ```sql
-
+SET @NotaDesempenho = 7;
+SELECT
+	IF(@NotaDesempenho >= 7, 'Recebe bônus de 10%', 'Não recebe bônus');
 ```
 
 - Exemplo 3: Uma empresa oferece um bônus de 10% e 5% para todos os funcionários que tiveram uma avaliação do RH de acordo com a seguinte regra:
 	- NotaDesempenho >= 7 ---> Recebe bônus de 10%
 	- NotaDesempenho >= 5 ---> Recebe bônus de 5%
-	- NotaDesempenho < 7 ----> Não recebe bônus
+	- NotaDesempenho < 5 ----> Não recebe bônus
 
 ```sql
-
+SET @NotaDesempenho = 4;
+SELECT
+	IF(@NotaDesempenho >= 7, 'Recebe bônus de 10%', IF(@NotaDesempenho >= 5, 'Recebe bônus de 5%', 'Não recebe bônus')) AS 'Resultado';
 ```
 
 - Exemplo 4. As lojas da nossa empresa que tiverem mais de 20 funcionários receberão uma reforma de ampliação. Utilize a função IF para criar uma coluna na tabela Lojas que informe quais lojas receberão reforma e quais não receberão reforma.
 
 ```sql
-
+SELECT
+	*,
+	IF(Num_Funcionarios > 20, 'Recebe reforma', 'Não recebe reforma') AS 'Status'
+FROM lojas;
 ```
 
-### 
-- 
+### Aula 2: Funções IFNULL, ISNULL e NULLIF
+- Exemplo 1. Utilize a função IFNULL para retornar um valor alternativo para o valor abaixo.
 
 ```sql
+-- IFNULL(expressão, valor_alternativo)
 
+SELECT
+	IFNULL(NULL, 'Valor alternativo')
+
+SELECT
+	IFNULL(100, 'Valor alternativo')
 ```
 
-
-### 
-- 
+- Exemplo 2. A tabela de lojas pode ter lojas que não possuem telefone de contato. Neste caso, todas as lojas que tiverem um telefone NULL serão direcionadas para uma central de atendimento com um número padrão: 0800-999-9999. Utilize a função IFNULL para fazer esse ajuste.
 
 ```sql
-
+SELECT
+	*,
+	IFNULL(Telefone, '0800-999-9999') AS 'Telefone corrigido'
+FROM lojas;
 ```
 
-
-### 
-- 
+- Exemplo 1. Alguns clientes não cadastraram o telefone de contato. Faça uma consulta com uma coluna extra que identifique esses clientes de alguma forma.
 
 ```sql
+# ISNULL: Testa se um determinado valor é NULL. Caso seja nulo, retorna 1; caso contrário, retorna zero.
 
+SELECT
+	*,
+	IF(ISNULL(Telefone), 'Verificar', 'Ok') AS 'Status'
+FROM clientes;
+
+
+# NULLIF: Compara duas expressões e retorna NULL se as duas forem iguais. Se forem, retornar NULL; caso contrário, retorna a primeira expressão. 
+
+SET @var1 = 100;
+SET @var2 = 200;
+
+SELECT
+	NULLIF(@var1, @var2) AS 'Resultado';
 ```
 
 
-### 
-- 
+### Aula 3: Função CASE-THEN
+- Exemplo 1. Utilize a estrutura CASE para criar uma consulta da nossa tabela de clientes que substitua o valor 'M' por 'Masculino' e o valor 'F' por 'Feminino'
 
 ```sql
-
+SELECT
+	*,
+	CASE
+		WHEN Sexo = 'M' THEN 'Masculino'
+		ELSE 'Feminino'
+	END AS 'Sexo 2'
+FROM clientes;
 ```
 
-
-### 
-- 
+- Exemplo 2. Na tabela de pedidos, crie uma estrutura CASE para avaliar as seguintes situações de Receita_Venda:
+	- Caso Receita_Venda >= 3000 ---> 'Faturamento Alto'
+	- Caso Receita_Venda >= 1000 ---> 'Faturamento Médio'
+	- Caso Receita_Venda < 1000  ---> 'Faturamento Baixo'
 
 ```sql
-
+SELECT
+	*,
+	CASE
+		WHEN Receita_Venda >= 3000 THEN 'Faturamento Alto'
+		WHEN Receita_Venda >= 1000 THEN 'Faturamento Médio'
+		ELSE 'Faturamento Baixo'
+	END AS 'Status'
+FROM pedidos;
 ```
 
-### 
-- 
+### Aula 4: Função CASE + AND
+- APLICAÇÃO AND
 
 ```sql
+-- Exemplo 1. A empresa está com uma ação de dia das mães/dia dos pais. Como vai funcionar?
+-- Caso o cliente seja do sexo Feminino E tenha filhos, receberá ofertas de dia das mães
+-- Caso o cliente seja do sexo Marculino E tenha filhos, receberá ofertas de dia dos pais
+-- Caso contrário, não receberá oferta
+
+-- As ofertas serão enviadas por e-mail, por isso o setor responsável precisa de uma tabela identificando facilmente quem receberá qual oferta:
+
+-- 'Oferta dia das mães' ---> Mulher com filhos
+-- 'Oferta dia dos pais' ---> Homem com filhos
+-- 'Sem oferta' ---> Clientes sem filhos
+
+-- Você deve criar uma coluna extra identificando cada status.
+
 
 ```
 
 
-### 
-- 
+### Aula 5: Função CASE + OR (IN)
+- APLICAÇÃO OR
 
 ```sql
+-- Exemplo 2. A empresa está com uma parceria com as empresas das marcas 'DELL' e 'SAMSUNG'. Isso significa que os produtos dessas marcas receberão um desconto de 15% em seu custo de aquisição. Faça uma consulta que retorne uma coluna extra de desconto no custo de aquisição de cada produto. 
 
+-- Custo_Unit = X
+-- Custo_Unit = x - 15% de x = x - 0.15 * x = (1 - 0.15) * x
+
+SELECT
+	*,
+	CASE
+		WHEN Marca_Produto = 'DELL' OR Marca_Produto = 'SAMSUNG' THEN (1-0.15)*Custo_Unit
+		ELSE Custo_Unit
+	END AS 'Desconto?'
+FROM produtos;
+
+-- Outra solução
+SELECT
+	*,
+	CASE
+		WHEN Marca_Produto IN ('DELL', 'SAMSUNG') THEN (1-0.15)*Custo_Unit
+		ELSE Custo_Unit
+	END AS 'Desconto?'
+FROM produtos;
 ```
 
 
-### 
-- 
+----------------
+## Módulo 42: Views
+
+### Aula 2: CREATE VIEW
+- CREATE VIEW: Cria uma view no nosso banco de dados.
 
 ```sql
+CREATE VIEW vwclientes AS
+SELECT
+	ID_Cliente,
+	Nome,
+	Data_Nascimento,
+	Email,
+	Telefone
+FROM clientes;
 
+SELECT * FROM vwclientes;
 ```
 
 
-### 
-- 
+### Aula 3: ALTER VIEW e DROP VIEW
+- ALTER VIEW: Altera uma view existente no banco de dados.
 
 ```sql
+ALTER VIEW vwclientes AS
+SELECT
+	ID_Cliente,
+	Nome,
+	Data_Nascimento,
+	Email,
+	Telefone,
+	Escolaridade
+FROM clientes
+WHERE Escolaridade = 'Parcial';
 
+SELECT * FROM vwclientes;
+
+DROP VIEW vwclientes;
 ```
 
-
-### 
-- 
+### Aula 4: Exemplo 1 - Criando uma View com o comando WHERE
+- Exemplo 1. Crie uma View chamada vwReceitaAcima4000 que armazene todas as colunas da tabela Pedidos. A sua View deverá conter apenas as vendas com receita acima de R$4.000.
 
 ```sql
+CREATE VIEW vwReceitaAcima4000 AS
+SELECT
+	*
+FROM pedidos
+WHERE Receita_Venda > 4000;
 
+SELECT * FROM vwReceitaAcima4000;
 ```
 
-
-### 
-- 
+- Exemplo 2. Crie uma View chamada vwProdutosAtualizada que armazene todas as colunas da tabela Produtos. A sua view deverá conter apenas os produtos das marcas DELL, SAMSUNG e SONY. 
 
 ```sql
+CREATE VIEW vwProdutosAtualizada AS
+SELECT
+	*
+FROM produtos
+WHERE Marca_Produto IN ('DELL', 'SAMSUNG', 'SONY');
 
+SELECT * FROM vwProdutosAtualizada;
 ```
 
 
-### 
-- 
+### Aula 5: Exemplo 2 - Criando uma View com os comandos GROUP BY, WHERE e HAVING
+- Exemplo 1. Crie uma view que será o resultado de um agrupamento da tabela de pedidos. A ideia é que você tenha nessa view o total de Receita e Custo agrupados por ID_Produto.
 
 ```sql
+CREATE VIEW vwReceitaECustoTotal AS
+SELECT
+	ID_Produto,
+	SUM(Receita_Venda) AS 'Receita Total',
+	SUM(Custo_Venda) AS 'Custo Total'
+FROM pedidos
+GROUP BY ID_Produto;
 
+SELECT * FROM vwReceitaECustoTotal;
 ```
 
-
-### 
-- 
+- Exemplo 2. Altere a view anterior para mostrar o agrupamento apenas para os produtos da loja 2. 
 
 ```sql
+ALTER VIEW vwReceitaECustoTotal AS
+SELECT
+	ID_Produto,
+	ID_Loja,
+	SUM(Receita_Venda) AS 'Receita Total',
+	SUM(Custo_Venda) AS 'Custo Total'
+FROM pedidos
+WHERE ID_Loja = 2
+GROUP BY ID_Produto;
 
+SELECT * FROM vwReceitaECustoTotal;
 ```
 
-
-### 
-- 
+- Exemplo 3. Altere a view anterior para mostrar o agrupamento apenas para os produtos que tiveram uma receita total maior que 1 milhão, na loja 2. 
 
 ```sql
+ALTER VIEW vwReceitaECustoTotal AS
+SELECT
+	ID_Produto,
+	ID_Loja,
+	SUM(Receita_Venda) AS 'Receita Total',
+	SUM(Custo_Venda) AS 'Custo Total'
+FROM pedidos
+WHERE ID_Loja = 2
+GROUP BY ID_Produto
+HAVING SUM(Receita_Venda) >= 1000000;
 
+SELECT * FROM vwReceitaECustoTotal;
 ```
 
 
-### 
-- 
+### Aula 6: Exemplo 3 - Criando uma View com os comandos INNER JOIN e GROUP BY
+- Exemplo 1. Crie uma view que seja a junção entre as tabelas de pedidos e de produtos. Ou seja, essa view deve conter todas as colunas da tabela pedidos e as colunas Nome_Produto, Marca_Produto e Num_Serie da tabela de produtos.
 
 ```sql
+CREATE VIEW vwPedidosCompleta AS
+SELECT
+	pe.*,
+	pr.Nome_Produto,
+	pr.Marca_Produto,
+	pr.Num_Serie
+FROM pedidos AS pe
+INNER JOIN produtos AS pr
+	ON pe.ID_produto = pr.ID_produto;
 
+SELECT * FROM vwPedidosCompleta;
+```
+
+- Exemplo 2. Crie uma view que será o resultado de um agrupamento da tabela de pedidos. A ideia é que você tenha nessa view o total de Receita e Custo agrupados por Nome_Produto.
+
+```sql
+CREATE VIEW vwResultadoFinal AS
+SELECT
+	pr.Nome_Produto,
+	SUM(pe.Receita_Venda) AS 'Receita Total',
+	SUM(pe.Custo_Venda) AS 'Custo Total'
+FROM pedidos AS pe
+INNER JOIN produtos AS pr
+	ON pe.ID_produto = pr.ID_produto
+GROUP BY pr.Nome_Produto;
+
+SELECT * FROM vwResultadoFinal;
+```
+
+
+---------------
+## Módulo 43: CRUD
+
+### Aula 2: Criando Bancos de Dados
+
+```sql
+# 1. CREATE DATABASE: Criando um banco de dados
+
+-- Para criar um banco de dados, usamos o seguinte comando:
+
+-- CREATE DATABASE nome_bd;
+
+-- CREATE DATABASE IF NOT EXISTS nome_bd;
+
+-- Obs.: O IF NOT EXISTS não é obrigatório. Sua função é evitar o erro que pode acontecer se você já tiver criado um banco de dados com o mesmo nome. 
+-- Exemplo:
+
+CREATE DATABASE db_Exemplo;
+
+CREATE DATABASE IF NOT EXISTS db_Exemplo;
+
+
+# 2. SHOW DATABASES: Verificando um banco de dados
+
+-- É possível verificar os bancos de dados existentes utilizando o comando SHOW:
+
+SHOW DATABASES;
+
+
+# 3. USE: Usando um BD específico
+
+-- O comando USE define um banco de dados específico como sendo o padrão do sistema.
+
+USE db_Exemplo;
+
+-- Caso você queira saber qual é o banco de dados selecionado no momento, você pode usar o comando:
+
+SELECT DATABASE();
+
+
+# 4. DROP: Excluindo um banco de dados
+
+-- Para excluir um banco de dados, usamos o seguinte comando:
+
+DROP DATABASE db_Exemplo;
+DROP DATABASE IF EXISTS db_Exemplo;
+```
+
+
+### Aula 3: Criando Tabelas - Tipos de Dados, CREATE, SHOW e DROP TABLE
+
+```sql
+-- Crie o banco de dados db_Exemplo e defina-o como padrão:
+
+CREATE DATABASE IF NOT EXISTS db_Exemplo;
+USE db_Exemplo;
+--
+
+# Tipos de Dados no MySQL
+-- Quando criamos uma nova tabela, precisamos especificar quais são as colunas que esssa tabela deve conter.
+-- Cada uma dessas colunas vai armazenar um tipo de dados específico.
+-- Os principais tipos de dados são listados abaixo:
+
+-- INT:
+-- Um inteiro médio. O intervalo assinado é de -2147483648 a 2147483647.
+
+-- DECIMAL(M, D):
+-- O número total de dígitos é especificado em M. O número de dígitos após o ponto decimal é especificado no parâmetro D. O número máximo para M é 65. O número máximo para D é 30. O valor padrão para M é 10. O valor padrão para D é 0. 
+
+-- 1500.59 -- DECIMAL(6, 2)
+ 
+-- VARCHAR(N):
+-- Uma string de comprimento VARIÁVEL (pode conter letras, números e caracteres especiais). O parâmetro N especifica o comprimento máximo da coluna em caracteres - pode ser de 0 a 65535. 
+
+-- DATE:
+-- Uma data no formato: YYYY-MM-DD. O intervalor compatível é de '1000-01-01' a '9999-12-31'.
+
+-- DATETIME:
+-- Uma combinação de data e hora. Formato: YYYY-MM-DD HH:MM:SS. O intervalo compatível é de '1000-01-01 00:00:00' a '9999-12-31 23:59:59'.
+
+
+-- Agora que sabemos os principais tipos de dados, podemos criar nossas tabelas. 
+
+CREATE TABLE IF NOT EXISTS dAlunos(
+	ID_Aluno INT,
+	Nome_Aluno VARCHAR(100),
+	Email VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS dCursos(
+	ID_Curso INT,
+	Nome_Curso VARCHAR(100),
+	Preco_Curso DECIMAL(10, 2)
+);
+
+CREATE TABLE IF NOT EXISTS fMatriculas(
+	ID_Matricula INT,
+	ID_Aluno INT,
+	ID_Curso INT,
+	Data_Cadastro DATE
+);
+
+
+SHOW TABLES;
+
+DROP TABLE dAlunos;
+
+SELECT * FROM dAlunos;
+SELECT * FROM dCursos;
+SELECT * FROM fMatriculas;
+```
+
+
+### Aula 4: Constraints - O que são e como usar
+
+```sql
+# 4. Adicionando constraints nas colunas das tabelas criadas.
+
+-- Restrições (Constraints) são regras aplicadas nas colunas de uma tabela.
+	-- Ex1: Podemos especificar que uma coluna não pode ter valores NULL;
+    -- Ex2: Podemos especificar que uma coluna deverá ser uma chave primária ou chave estrangeira;
+-- São usadas para limitar os tipso de dados que são inseridos. 
+
+# Principais:
+
+# I. NOT NULL:
+-- A constraint NOT NULL faz com que uma coluna não aceite valores NULL. Um valor NULL é diferente de zero ou vazio, ele identifica que nenhum valor foi definido. 
+-- A constraint NOT NULL obriga um campo a sempre possuir um valor. 
+-- Dessa forma, não é possível inserir um registro ou atualizar sem entrar com um valor neste campo. 
+
+		-- Nome_Cliente VARCHAR(100) NOT NULL
+
+# II. UNIQUE
+-- A restrição UNIQUE identifica de forma única cada registro em uma tabela de um banco de dados.
+-- As constraints UNIQUE e PRIMARY KEY garantem a unicidade em uma coluna ou conjunto de colunas.
+-- Uma constraint PRIMARY KEY automaticamente possui uma restrição UNIQUE definida.
+-- Você pode ter várias constraints UNIQUE em uma tabela, mas apenas uma Chave Primária por tabela.
+
+# III. DEFAULT
+-- Essa restrição insere um valor padrão na coluna.
+-- O valor padrão será adicionado a todos os novos registros caso nenhum outro valor seja especificado. 
+
+# IV. PRIMARY KEY (Chave Primária)
+-- A PRIMARY KEY identifica de forma única cada registro em uma tabela do banco de dados.
+-- Chaves primárias devem conter valores únicos.
+-- Uma coluna de chave primária não pode conter valores NULL. 
+-- Cada tabela deve conter 1 e apenas 1 chave primária.
+
+# V. FOREIGN KEY (Chave Estrangeira)
+-- Uma FOREIGN KEY em uma tabela é um campo que aponta para uma chave primária em outra tabela. 
+
+DROP TABLE IF EXISTS dAlunos;
+DROP TABLE IF EXISTS dCursos;
+DROP TABLE IF EXISTS fMatriculas;
+
+
+CREATE TABLE IF NOT EXISTS dAlunos(
+	ID_Aluno INT,
+	Nome_Aluno VARCHAR(100) NOT NULL,
+	Email VARCHAR(100) NOT NULL,
+	PRIMARY KEY(ID_Aluno)
+);
+
+CREATE TABLE IF NOT EXISTS dCursos(
+	ID_Curso INT,
+	Nome_Curso VARCHAR(100) NOT NULL,
+	Preco_Curso DECIMAL(10, 2) NOT NULL,
+	PRIMARY KEY(ID_Curso)
+);
+
+CREATE TABLE IF NOT EXISTS fMatriculas(
+	ID_Matricula INT,
+	ID_Aluno INT NOT NULL,
+	ID_Curso INT NOT NULL,
+	Data_Cadastro DATE NOT NULL,
+	PRIMARY KEY(ID_Matricula),
+	FOREIGN KEY(ID_Aluno) REFERENCES dAlunos(ID_Aluno),
+	FOREIGN KEY(ID_Curso) REFERENCES dCursos(ID_Curso)
+);
+```
+
+
+### Aula 6: INSERT INTO - Inserindo dados em uma tabela no banco de dados
+
+```sql
+# 5. Inserindo dados nas tabelas. 
+
+INSERT INTO dAlunos(ID_Aluno, Nome_Aluno, Email)
+VALUES
+	(1, 'Ana'	, 'ana123@gmail.com'		),
+	(2, 'Bruno'	, 'bruno_vargas@outlook.com'	),
+	(3, 'carla'	, 'carlinha1999@gmail.com'	),
+	(4, 'Diego'	, 'diicastroneves@gmail.com'	);
+    
+SELECT * FROM dAlunos;
+
+
+INSERT INTO dCursos(ID_Curso, Nome_Curso, Preco_Curso)
+VALUES
+	(1, 'Excel'	, 100),
+	(2, 'VBA'	, 200),
+	(3, 'Power BI'	, 150);
+    
+SELECT * FROM dCursos;
+
+
+INSERT INTO fMatriculas(ID_Matricula, ID_Aluno, ID_Curso, Data_Cadastro)
+VALUES
+	(1, 1, 1, '2021-03-11'),
+	(2, 1, 2, '2021-06-21'),
+	(3, 2, 3, '2021-01-08'),
+	(4, 3, 1, '2021-04-03'),
+	(5, 4, 1, '2021-05-10'),
+	(6, 4, 3, '2021-05-10');
+    
+SELECT * FROM fMatriculas;
+```
+
+
+### Aula 7: UPDATE - Atualizar registros de uma tabela
+
+```sql
+# 6. Atualizando dados de uma tabela com o UPDATE
+
+UPDATE dCursos
+SET Preco_Curso = 300
+WHERE ID_Curso = 1;
+
+SELECT * FROM dCursos;
 ```
 
 
 ### 
+
+```sql
+# 7. Deletando registros de uma tabela
+
+DELETE FROM fMatriculas
+WHERE ID_Matricula = 6;
+
+SELECT * FROM fMatriculas;
+```
+
+
+### Aula 9: TRUNCATE TABLE x DROP TABLE
 - 
 
 ```sql
