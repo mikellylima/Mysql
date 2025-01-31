@@ -751,53 +751,163 @@ SELECT DATE_SUB(@varDataFim, INTERVAL 10 DAY);
 --------------
 ## Módulo 40: Joins 
 
-### 
-- 
+### Aula 4: INNER JOIN - Exemplo 1
+- Exemplo 1. Faça uma consulta para relacionar as tabelas de produtos e pedidos.
+
+```sql
+SELECT
+	pedidos.ID_Pedido,
+	pedidos.Data_Venda,
+	pedidos.ID_Produto,
+	pedidos.Qtd_Vendida,
+	pedidos.Receita_Venda,
+	produtos.Nome_Produto,
+	produtos.Marca_Produto
+FROM pedidos
+INNER JOIN produtos
+	ON pedidos.ID_Produto = produtos.ID_Produto;
+```
+
+
+### Aula 5: INNER JOIN - Exemplo 2
+- Exemplo 2. Faça uma consulta para relacionar as tabelas de clientes e pedidos.
+
+```sql
+SELECT
+	pedidos.ID_Pedido AS 'ID Pedido',
+	pedidos.Data_Venda AS 'Data da Venda',
+	pedidos.ID_Cliente AS 'ID Cliente',
+	pedidos.Qtd_Vendida AS 'Qtd. Vendida',
+	clientes.Nome AS 'Nome do Cliente',
+	clientes.Email AS 'E-mail',
+	clientes.Telefone AS 'Telefone'
+FROM pedidos
+INNER JOIN clientes
+	ON pedidos.ID_Cliente = clientes.ID_Clientes;
+```
+
+
+### Aula 7 de 9: Renomeando as tabelas com o AS
+- Exemplo 2. Faça uma consulta para relacionar as tabelas de clientes e pedidos.
+
+```sql
+SELECT
+	p.ID_Pedido AS 'ID Pedido',
+	p.Data_Venda AS 'Data da Venda',
+	p.ID_Cliente AS 'ID Cliente',
+	p.Qtd_Vendida AS 'Qtd. Vendida',
+	c.Nome AS 'Nome do Cliente',
+	c.Email AS 'E-mail',
+	c.Telefone AS 'Telefone'
+FROM pedidos AS p
+INNER JOIN clientes as C
+	ON p.ID_Cliente = c.ID_Clientes;
+```
+
+
+### Aula 8: INNER JOIN + WHERE
+- Altere a consulta abaixo para incluir a coluna de Sexo da tabela clientes. Faça um filtro para mostrar apenas os clientes do sexo masculino.
+
+```sql
+SELECT
+	p.ID_Pedido AS 'ID Pedido',
+	p.Data_Venda AS 'Data da Venda',
+	p.ID_Cliente AS 'ID Cliente',
+	p.Qtd_Vendida AS 'Qtd. Vendida',
+	c.Nome AS 'Nome do Cliente',
+	c.Email AS 'E-mail',
+	c.Telefone AS 'Telefone',
+	c.Sexo AS 'Sexo'
+FROM pedidos AS p
+INNER JOIN clientes as C
+	ON p.ID_Cliente = c.ID_Clientes
+WHERE Sexo = 'M';
+```
+
+
+### Aula 9: INNER JOIN + GROUP BY
+- a) Faça um agrupamento para mostrar o total de receita por ID do produto.
+
+```sql
+SELECT
+	ID_Produto,
+	SUM(Receita_Venda) AS 'Receita Total'
+FROM pedidos
+GROUP BY ID_Produto;
+```
+
+- b) Altere a consulta criada para mostrar o nome do produto em vez do ID do produto.
+
+```sql
+SELECT
+	Nome_Produto,
+	SUM(Receita_Venda) AS 'Receita Total'
+FROM pedidos
+INNER JOIN produtos
+	ON pedidos.ID_Produto = produtos.ID_Produto
+GROUP BY Nome_Produto;
+```
+
+- a) Faça um agrupamento para mostrar o total de receita e custo por ID da loja.
+
+```sql
+SELECT
+	ID_Loja,
+	SUM(Receita_Venda) AS 'Receita Total',
+	SUM(Custo_Venda) AS 'Custo Total'
+FROM pedidos
+GROUP BY Loja;
+```
+
+- b) Altere a consulta criada para mostrar o nome da loja em vez do ID da loja.
+
+```sql
+SELECT
+	Loja,
+	SUM(Receita_Venda) AS 'Receita Total',
+	SUM(Custo_Venda) AS 'Custo Total'
+FROM pedidos
+INNER JOIN lojas
+	ON pedidos.ID_Loja = lojas.ID_Loja
+GROUP BY Loja;
+```
+
+
+--------------
+## Módulo 41: Funções Condicionais
+
+### Aula 1: Função IF
+
+```sql
+-- IF(teste_logico, valor_se_verdadeiro, valor_se_falso)
+-- IF(teste_logico1, valor_se_verdadeiro1, IF(teste_logico2, valor_se_verdadeiro2, valor_se_falso))
+
+SELECT
+	IF(0 > 15, 'Verdadeiro', 'Falso')
+```
+
+- Exemplo 2: Uma empresa oferece um bônus de 10% para todos os funcionários que tiveram uma avaliação do RH de acordo com a seguinte regra:
+	- NotaDesempenho >= 7 ---> Recebe bônus de 10%
+	- NotaDesempenho < 7 ----> Não recebe bônus
 
 ```sql
 
 ```
 
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
+- Exemplo 3: Uma empresa oferece um bônus de 10% e 5% para todos os funcionários que tiveram uma avaliação do RH de acordo com a seguinte regra:
+	- NotaDesempenho >= 7 ---> Recebe bônus de 10%
+	- NotaDesempenho >= 5 ---> Recebe bônus de 5%
+	- NotaDesempenho < 7 ----> Não recebe bônus
 
 ```sql
 
 ```
 
-
-### 
-- 
+- Exemplo 4. As lojas da nossa empresa que tiverem mais de 20 funcionários receberão uma reforma de ampliação. Utilize a função IF para criar uma coluna na tabela Lojas que informe quais lojas receberão reforma e quais não receberão reforma.
 
 ```sql
 
 ```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
 
 ### 
 - 
