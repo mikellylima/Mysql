@@ -1596,153 +1596,298 @@ SET GLOBAL log_bin_trust_function_creators = 1;
 ```
 
 
-### 
-- 
+### Aula 7: Stored Procedures - Introdução e exemplo
 
 ```sql
+-- 1. Introdução 
+-- As Stores Procedures podem ser vistas como programas/scripts (se fizermos uma analogia com qualquer linguagem de programação). Uma procedure permite alterar de forma global o banco de dados. 
+
+-- Com elas, conseguimos utilizar instruções INSERT, UPDATE, DELETE. 
+
+-- Procedures são utilizadas normalmente para juntar várias queries em um único bloco de código.
+
+-- 2. Sintaxe
+/*
+DELIMITER $$
+
+CREATE PROCEDURE nome_storedprocedure(param1 tipo1, param2 tipo2)
+BEGIN
+	DECLARE var1 tipo1;
+	DECLARE var2 tipo2;
+	
+	instruções1;
+	instruções2;
+	instruções3;
+END $$
+
+DELIMITER ;
+
+CALL nome_storedprocedure(valor1, valor2);
+*/
+```
+
+- Exemplo 1. Crie uma procedure que atualiza o preço de um curso com um novo preço. Sua procedure deve ser capaz de pesquisar o ID do curso de acordo com o parâmetro de ID informado como argumento da procedure.
+
+```sql
+DELIMITER $$
+CREATE PROCEDURE sp_AtualizaPreco(NovoPreco DECIMAL(10, 2), ID int)
+BEGIN
+	-- 1. Código de atualizar o preço na tabela dCursos
+	UPDATE dCursos
+	SET Preco_Curso = NovoPreco
+	WHERE ID_Curso = ID;
+	
+	-- 2. Enviar uma mensagem de executado com sucesso
+	SELECT 'Preço atualizado com sucesso!';
+END $$
+
+DELIMITER ;
+
+SELECT * FROM dCursos;
+
+CALL sp_AtualizaPreco(400, 1);
+```
+
+
+### Aula 9: Stored Procedures
+- Exemplo 2. Crie uma procedure capaz de receber 2 parâmetros: ID e Desconto. Com a informação de ID, ela deve aplicar o desconto para o curso de ID informado. Além disso, sua procedure deve retornar as seguintes mensagens:
+	- 'Desconto de ___ aplicado com sucesso!'
+	- 'Curso: ____; Preço antigo = ____; Preço Novo = ____.'
+	- 'Código finalizado com sucesso!'
+
+```sql
+DELIMITER $$
+CREATE PROCEDURE sp_AplicaDesconto(ID INT, Desconto DECIMAL(10, 2))
+BEGIN
+	-- 1. Declarar algumas variáveis importantes
+	-- Variável para armazenar o preço com desconto
+	DECLARE varPrecoComDesconto DECIMAL(10, 2);
+	-- Variável para armazenar o nome do curso
+	DECLARE varNomeCurso VARCHAR(100);
+	-- Variável para armazenar o preço antigo do curso
+	DECLARE varPrecoAntigo DECIMAL(10, 2);
+	
+	-- 2. Atribuir o valor de preço antigo à variável varPreçoAntigo
+	SET varPrecoAntigo = (SELECT Preco_Curso FROM dCursos WHERE ID_Curso = ID);
+	
+	-- 3. Atribuir o valor de preço com desconto à variável varPrecoComDesconto
+	SET varPrecoComDesconto = (SELECT Preco_Curso FROM dCursos WHERE ID_Curso = ID) * (1-Desconto);
+	
+	-- 4. Atribuir o nome do curso à vairiável varNomeCurso
+	SET varNomeCurso = (SELECT Nome_Curso FROM dCursos WHERE ID_Curso = ID);
+	
+	-- 5. Atualizar a tabela com o novo preço
+	UPDATE dCursos
+	SET Preco_Curso = varPrecoComDesconto
+	WHERE ID_Curso = ID;
+	
+	SELECT CONCAT('Desconto de ', Desconto * 100, '% aplicado com sucesso!');
+	SELECT CONCAT('Curso: ', varNomeCurso, '; Preço antigo = ', varPrecoAntigo, '; Preço Novo = ', varPrecoComDesconto, '.');
+	SELECT 'Código finalizado com sucesso!';
+END $$
+
+DELIMITER ;
+
+SELECT * FROM dCursos;
+
+-- Excel = 400
+-- VBA = 600
+-- Power BI = 360
+
+CALL sp_AplicaDesconto(1, 0.5);
+```
+
+
+--------------
+## Módulo 45: Subqueries
+
+### Aula 1: Introdução
+
+```sql
+-- 1. Introdução 
+-- Podemos resumir uma subquery como sendo um SELECT dentro de outro SELECT. Ou seja, uma query dentro de outra query. 
+
+
+-- As subqueries podem ser utilizadas em 3 situações: 
+
+-- 1. Subquery como filtro de uma nova consulta
+	-- Uma subquery pode ser usada para filtrar outras consultas. Para este caso, podemos utilizar as cláusulas WHERE, com os operadores de comparação (como =, >=, <=), IN e EXISTS. 
+    
+-- Exemplo: 
+-- SELECT colunas FROM tabela WHERE coluna = (SELECT colunas FROM tabela...);
+
+-- 2. Subquery  como uma nova coluna da consulta
+	-- Outra utilização de uma subquery é fazer com que o resultado de outra consulta seja uma coluna dentro de sua consulta principal. 
+    
+-- Exemplo:
+-- SELECT colunas, (SELECT colunas FROM tabela...) FROM tabela;
+
+-- 3. Subquery como fonte de dados de uma consulta principal
+	-- Este outro formato faz com que o resultado de uma subquery possa ser utilizado como tabela fonte de dados de uma consulta principal. 
+    
+-- Exemplo:
+-- SELECT colunas FROM (SELECT colunas FROM tabela...) AS t;
+
+-- Obs.: Necessariamente a tabela resultado da subquery deve ter um apelido (AS).
+```
+
+
+### Aula 2: Subquery como filtro de uma nova consulta (Escalar) - Exemplo 1
+- Exercício 1. Quais foram os pedidos realizados na loja onde o gerente é o Marcelo Castro?
+
+```sql
+SET @varNomeGerente = 'Marcelo Castro';
+
+SELECT 
+	*
+FROM pedidos
+WHERE ID_Loja = (SELECT 
+			ID_Loja
+		FROM lojas 
+		WHERE Gerente = @varNomeGerente);
+```
+
+
+### Aula 3: Subquery como filtro de uma nova consulta (Escalar) - Exemplo 2
+- Exercício 2. Quais produtos têm o Preco_Unit acima da média?
+
+```sql
+SELECT *
+FROM produtos
+WHERE Preco_Unit > (
+		SELECT
+			AVG(Preco_Unit)
+		FROM produtos);
+```
+
+
+### Aula 4: Subquery como filtro de uma nova consulta (Escalar) - Exemplo 3
+- Exercício 3. Quais produtos são da categoria 'Notebook'?
+
+```sql
+SET @varCategoria = 'Notebook';
+
+SELECT *
+FROM produtos
+WHERE ID_Categoria = (
+			SELECT ID_Categoria
+			FROM categorias
+			WHERE Categoria = @varCategoria
+);
 
 ```
 
 
-### 
-- 
+### Aula 5: Subquery como filtro de uma nova consulta (Escalar) - Exemplo Desafio
+- Exercício Desafio. Descubra todas as informações sobre o cliente que gerou mais receita para a empresa.
 
 ```sql
-
+SELECT * FROM clientes
+WHERE ID_Cliente = (
+		SELECT 
+		ID_Cliente
+		FROM pedidos
+		GROUP BY ID_Cliente
+		ORDER BY SUM(Receita_Venda) DESC
+		LIMIT 1);
 ```
 
 
-### 
-- 
+### Aula 6 de 10: Subquery como filtro de uma nova consulta (Lista) - Exemplo 1
+- Exercício 1. Descubra quais foi a receita total associada aos produtos da marca DELL.
 
 ```sql
+SELECT
+	SUM(Receita_Venda) AS 'Receita Marca DELL'
+FROM pedidos
+WHERE ID_Produto IN (
+		SELECT ID_Produto
+		FROM produtos
+		WHERE Marca_Produto = 'DELL');
+```
 
+- Exercício 2. Quais pedidos foram feitos na região 'Sudeste'?
+
+```sql
+SELECT
+	COUNT(*)
+FROM pedidos
+WHERE ID_Loja IN(
+		SELECT ID_Loja FROM lojas
+		WHERE Loja IN (
+				SELECT Cidade FROM locais
+				WHERE Região = 'Sudeste')
+);
+```
+
+### Aula 8: Subquery para criar uma nova coluna na consulta
+- Exercício 1. Faça uma consulta que retorne todas as colunas da tabela de produtos + uma coluna com a média de Preco_Unit. 
+
+```sql
+SELECT
+	*,
+	(SELECT AVG(Preco_Unit) FROM produtos) AS 'Média Preço Unitário'
+FROM produtos;
 ```
 
 
-### 
-- 
+### Aula 9: Subquery para criar uma tabela na consulta
+- Exercício 1. Do total de vendas por produto, qual foi a quantidade máxima vendida? E a quantidade mínima? E a média?
 
 ```sql
-
+SELECT
+	MAX(Vendas) AS 'Máximo Vendas',
+	MIN(Vendas) AS 'Mínimo Vendas',
+	AVG(Vendas) As 'Média Vendas'
+FROM (
+	SELECT
+		ID_Produto,
+		COUNT(*) AS 'Vendas'
+	FROM pedidos
+	GROUP BY ID_Produto
+    ) AS t;
 ```
 
 
-### 
-- 
+### Aula 10: EXISTS e NOT EXISTS
 
 ```sql
+-- O operador EXISTS é usado para testar a existência de qualquer registro em uma subconsulta.
 
+-- O operador EXISTS retorna TRUE se a subconsulta retornar um ou mais registros. 
+
+/*
+Sintaxe:
+
+SELECT coluna(s)
+FROM tabela
+WHERE EXISTS
+(SELECT coluna(s) FROM tabela WHERE condição);
+*/
 ```
 
-
-### 
-- 
+- Exercício. Você deverá verificar se todas as categorias possuem pelo menos 1 exemplar de produtos (na tabela de produtos); caso alguma categoria não possua nenhum exemplar, você deverá descobrir qual é/quais são. 
 
 ```sql
+-- Categorias que existem
+SELECT
+	ID_Categoria
+FROM categorias
+WHERE EXISTS (
+	SELECT
+		ID_Categoria
+	FROM produtos
+	WHERE categorias.ID_Categoria = produtos.ID_Categoria
+);
 
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
-```
-
-
-### 
-- 
-
-```sql
-
+-- Categorias que não existem
+SELECT
+	ID_Categoria
+FROM categorias
+WHERE NOT EXISTS (
+	SELECT
+		ID_Categoria
+	FROM produtos
+	WHERE categorias.ID_Categoria = produtos.ID_Categoria
+);
 ```
